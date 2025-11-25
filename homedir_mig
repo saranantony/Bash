@@ -1,0 +1,14 @@
+#!/bin/bash
+echo "1.Make new home directory"
+mkdir /newhome
+if ! dpkg -s rsync ; then
+ apt install -y rsync;
+fi
+echo "2.run  rsync"
+rsync  -aHAXv  /home /newhome
+echo "3.Mount the new home directory"
+mount --bind /newhome /home 
+echo "4. update the fstab"
+sed -i '/home/ s/^/#/' /etc/fstab
+echo  "/newhome /home none bind 0 0" >>/etc/fstab
+
