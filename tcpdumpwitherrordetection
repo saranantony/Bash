@@ -1,12 +1,25 @@
 #!/bin/bash
 
-svc_tcpdump -W 5 -C 200 -i bond2 -F "/home/service/user/tcpdumpfilter.txt" &
+Log="/EMC/C4Core/log/c4_safe_ktrace.log"
+sudo svc_tcpdump -W 5 -C 200 -i bond2 -F "/home/service/user/tcpdumpfilter.txt" -w dnstcptrace.out &
 P=$!
 
 while kill -0 $P 2>/dev/null; do
-    if grep -q "The DNS client is unable to connect to name server" /EMC/C4Core/log/c4_safe_ktrace.log; then
-        kill -- -$P
+    if grep -q "The DNS client is unable to connect to name server" $Log; then
+        echo "Event detected"
+        sleep 10
+        sudo pkill -TERM -P $P
+        sleep 2
+        sudo kill -TERM $P
+        sleep 2
+        sudo pkill -9 -f "svc_tcpdump"
+        echo "capture stopped"
         break
     fi
     sleep 5
+
 done
+
+
+
+
